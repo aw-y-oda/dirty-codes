@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .calc-form {
+        margin: 20px 0;
+        padding: 20px;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+      .form-group {
+        margin: 15px 0;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      .form-group input {
+        width: 100%;
+        max-width: 300px;
+        padding: 8px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .btn {
+        padding: 10px 20px;
+        font-size: 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: #0056b3;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #e7f3ff;
+        border-left: 4px solid #007bff;
+        font-size: 18px;
+        font-weight: bold;
+      }
+      .radio-group {
+        margin: 15px 0;
+      }
+      .radio-group label {
+        display: inline-block;
+        margin-right: 20px;
+        cursor: pointer;
+      }
+      .hidden {
+        display: none;
+      }
+      .note {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      tr.highlight {
+        background-color: #fff3cd !important;
+        font-weight: bold;
+      }
+      .table-title {
+        font-weight: bold;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+      .two-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-items: start;
+        margin: 20px 0;
+        padding: 20px;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+      .input-section {
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+      }
+      .result-section {
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        border: 2px solid #007bff;
+      }
+      @media (max-width: 768px) {
+        .two-column {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>収入金額計算</h1>
+
+      <div class="two-column">
+        <div class="input-section">
+          <h2>今年の収入金額を記入</h2>
+
+          <div class="radio-group">
+            <label>
+              <input
+                type="radio"
+                name="employeeType"
+                value="experienced"
+                checked
+                onchange="toggleInputFields()"
+              />
+              2年目以上
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="employeeType"
+                value="newbie"
+                onchange="toggleInputFields()"
+              />
+              新人
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="octoberSalary">①10月の総支給額（円）:</label>
+            <input type="number" id="octoberSalary" placeholder="例: 250000" />
+            <div class="note">※10月の給与明細参照</div>
+          </div>
+
+          <div class="form-group" id="summerBonusGroup">
+            <label for="summerBonus">②夏季賞与の総支給額（円）:</label>
+            <input type="number" id="summerBonus" placeholder="例: 500000" />
+            <div class="note">※夏季賞与の明細参照</div>
+          </div>
+
+          <div class="form-group">
+            <button class="btn" onclick="calculateEstimatedIncome()">
+              収入金額を計算
+            </button>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <h2>計算過程</h2>
+          <div id="estimatedResult" style="display: none"></div>
+
+          <h2 style="margin-top: 30px">所得金額</h2>
+          <div id="salaryResult" style="display: none"></div>
+        </div>
+      </div>
+
+      <h2>計算根拠</h2>
+
+      <div class="calc-form">
+        <div class="table-title">収入金額の計算方法</div>
+        <table>
+          <thead>
+            <tr>
+              <th>区分</th>
+              <th>計算式</th>
+              <th>備考</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>2年目以上</strong></td>
+              <td>収入金額 = ① × 12 + ② × 2</td>
+              <td>
+                ①10月の総支給額（※10月の給与明細参照）<br />
+                ②夏季賞与の総支給額（※夏季賞与の明細参照）
+              </td>
+            </tr>
+            <tr>
+              <td><strong>新人</strong></td>
+              <td>収入金額 = ① × 10</td>
+              <td>
+                ①10月の総支給額（※10月の給与明細参照）<br />
+                ※冬季賞与を1カ月分と仮定
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="calc-form">
+        <div class="table-title">所得金額の速算表</div>
+        <table>
+          <thead>
+            <tr>
+              <th>給与の収入金額（A）</th>
+              <th>所得金額の計算式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1円以上<br />650,999円以下</td>
+              <td>0円</td>
+            </tr>
+            <tr>
+              <td>651,000円以上<br />1,899,999円以下</td>
+              <td>A － 650,000円</td>
+            </tr>
+            <tr>
+              <td>1,900,000円以上<br />3,599,999円以下</td>
+              <td>B ＝ A ÷ 4（千円未満切捨て）<br />B × 2.8 － 80,000円</td>
+            </tr>
+            <tr>
+              <td>3,600,000円以上<br />6,599,999円以下</td>
+              <td>B ＝ A ÷ 4（千円未満切捨て）<br />B × 3.2 － 440,000円</td>
+            </tr>
+            <tr>
+              <td>6,600,000円以上<br />8,499,999円以下</td>
+              <td>A × 0.9 － 1,100,000円</td>
+            </tr>
+            <tr>
+              <td>8,500,000円以上<br />（所得金額調整控除を適用しない場合）</td>
+              <td>A － 1,950,000円</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note" style="margin-top: 10px">
+          出典:
+          <a
+            href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/gensen/pdf/1648_73_02.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            >国税庁 給与所得の源泉徴収税額表（PDF）</a
+          >
+          /
+          <a
+            href="https://www.nta.go.jp/publication/pamph/gensen/nencho2025/pdf/306.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            >国税庁 年末調整のしかた（PDF）</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleInputFields() {
+        const employeeType = document.querySelector(
+          'input[name="employeeType"]:checked'
+        ).value;
+        const summerBonusGroup = document.getElementById("summerBonusGroup");
+
+        if (employeeType === "experienced") {
+          summerBonusGroup.classList.remove("hidden");
+        } else {
+          summerBonusGroup.classList.add("hidden");
+        }
+      }
+
+      function calculateEstimatedIncome() {
+        const employeeType = document.querySelector(
+          'input[name="employeeType"]:checked'
+        ).value;
+        const octoberSalary = parseFloat(
+          document.getElementById("octoberSalary").value
+        );
+
+        if (isNaN(octoberSalary) || octoberSalary < 0) {
+          alert("10月の総支給額を正しく入力してください");
+          return;
+        }
+
+        let estimatedIncome = 0;
+        let formula = "";
+
+        if (employeeType === "experienced") {
+          const summerBonus = parseFloat(
+            document.getElementById("summerBonus").value
+          );
+
+          if (isNaN(summerBonus) || summerBonus < 0) {
+            alert("夏季賞与の総支給額を正しく入力してください");
+            return;
+          }
+
+          estimatedIncome = octoberSalary * 12 + summerBonus * 2;
+          formula = `${octoberSalary.toLocaleString()} × 12 + ${summerBonus.toLocaleString()} × 2`;
+        } else {
+          estimatedIncome = octoberSalary * 10;
+          formula = `${octoberSalary.toLocaleString()} × 10`;
+        }
+
+        const resultDiv = document.getElementById("estimatedResult");
+        resultDiv.innerHTML = `
+          <div style="padding: 15px; background: #e7f3ff; border-left: 4px solid #007bff; border-radius: 4px; margin-bottom: 15px;">
+            <div style="margin-bottom: 10px;">
+              <strong>${
+                employeeType === "experienced" ? "2年目以上" : "新人"
+              }</strong>の計算方法
+            </div>
+            <div style="margin-bottom: 10px;">計算式: ${formula}</div>
+            <div style="font-size: 20px; color: #007bff; font-weight: bold;">収入金額: ${estimatedIncome.toLocaleString()} 円</div>
+            ${
+              employeeType === "newbie"
+                ? '<div style="font-size: 14px; margin-top: 10px; color: #666;">※冬季賞与を1カ月分と仮定</div>'
+                : ""
+            }
+          </div>
+        `;
+        resultDiv.style.display = "block";
+
+        calculateSalaryIncome(estimatedIncome);
+      }
+
+      function calculateSalaryIncome(salary) {
+        if (isNaN(salary) || salary < 0) {
+          return;
+        }
+
+        const result = getSalaryIncomeWithDetails(salary);
+        const resultDiv = document.getElementById("salaryResult");
+        resultDiv.innerHTML = `
+          <div style="padding: 15px; background: #e7f3ff; border-left: 4px solid #007bff; border-radius: 4px;">
+            <div style="margin-bottom: 10px;">適用される計算式: <strong>${
+              result.range
+            }</strong></div>
+            <div style="margin-bottom: 10px;">計算式: ${result.formula}</div>
+            <div style="margin-bottom: 10px;">給与の収入金額: ${salary.toLocaleString()} 円</div>
+            <div style="font-size: 20px; color: #007bff; font-weight: bold;">所得金額: ${result.income.toLocaleString()} 円</div>
+          </div>
+        `;
+        resultDiv.style.display = "block";
+      }
+
+      function getSalaryIncomeWithDetails(A) {
+        let income = 0;
+        let range = "";
+        let formula = "";
+
+        if (A >= 1 && A <= 650999) {
+          income = 0;
+          range = "1円以上 650,999円以下";
+          formula = "0円";
+        } else if (A >= 651000 && A <= 1899999) {
+          income = A - 650000;
+          range = "651,000円以上 1,899,999円以下";
+          formula = `${A.toLocaleString()} － 650,000 = ${income.toLocaleString()}円`;
+        } else if (A >= 1900000 && A <= 3599999) {
+          const B = Math.floor(A / 4 / 1000) * 1000;
+          income = B * 2.8 - 80000;
+          range = "1,900,000円以上 3,599,999円以下";
+          formula = `B = ${(
+            A / 4
+          ).toLocaleString()} → ${B.toLocaleString()}（千円未満切捨て）<br>${B.toLocaleString()} × 2.8 － 80,000 = ${income.toLocaleString()}円`;
+        } else if (A >= 3600000 && A <= 6599999) {
+          const B = Math.floor(A / 4 / 1000) * 1000;
+          income = B * 3.2 - 440000;
+          range = "3,600,000円以上 6,599,999円以下";
+          formula = `B = ${(
+            A / 4
+          ).toLocaleString()} → ${B.toLocaleString()}（千円未満切捨て）<br>${B.toLocaleString()} × 3.2 － 440,000 = ${income.toLocaleString()}円`;
+        } else if (A >= 6600000 && A <= 8499999) {
+          income = A * 0.9 - 1100000;
+          range = "6,600,000円以上 8,499,999円以下";
+          formula = `${A.toLocaleString()} × 0.9 － 1,100,000 = ${income.toLocaleString()}円`;
+        } else if (A >= 8500000) {
+          income = A - 1950000;
+          range = "8,500,000円以上";
+          formula = `${A.toLocaleString()} － 1,950,000 = ${income.toLocaleString()}円`;
+        } else {
+          income = 0;
+          range = "範囲外";
+          formula = "0円";
+        }
+
+        return { income, range, formula };
+      }
+
+      function getSalaryIncome(A) {
+        if (A >= 1 && A <= 650999) {
+          return 0;
+        } else if (A >= 651000 && A <= 1899999) {
+          return A - 650000;
+        } else if (A >= 1900000 && A <= 3599999) {
+          const B = Math.floor(A / 4 / 1000) * 1000;
+          return B * 2.8 - 80000;
+        } else if (A >= 3600000 && A <= 6599999) {
+          const B = Math.floor(A / 4 / 1000) * 1000;
+          return B * 3.2 - 440000;
+        } else if (A >= 6600000 && A <= 8499999) {
+          return A * 0.9 - 1100000;
+        } else if (A >= 8500000) {
+          return A - 1950000;
+        } else {
+          return 0;
+        }
+      }
+
+      console.log("所得金額計算が読み込まれました");
+    </script>
+  </body>
+</html>
