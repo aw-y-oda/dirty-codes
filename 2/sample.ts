@@ -42,19 +42,24 @@ import {
 } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
+// AWS専用階層を作成したい
 export function convertAWSDateTimeString(target: Date): string | false {
   try {
+    // 定数にしたい気持ち
     return format(target, "yyyy-MM-dd'T'hh:mm:ss.sss'Z'");
   } catch (e) {
     console.warn(e);
+    // errの時にfalseをリターンってどうなんでしょうか
     return false;
   }
 }
 
+// 不要
 export function nowAWSDateTimeString(date: Date = new Date()) {
   return convertAWSDateTimeString(date);
 }
 
+// そもそもどちらも存在する状態にさせない(string型にしたい時ってUI表示とかAPI実行の時とか？アプリケーションとしてはDATE型としたいのであれば、)
 export function convertDateString(
   date: Date | string,
   toFormat: string = "yyyy/MM/dd"
@@ -71,10 +76,12 @@ export function convertDateString(
   return format(date, toFormat);
 }
 
+// これも不要？
 export function buildDateInputFormFormat(date: Date): string {
   return convertDateString(date);
 }
 
+// これは何用だろう
 export function convertDateTimeString(date: Date): string {
   return format(date, "yyyy/MM/dd HH:mm");
 }
