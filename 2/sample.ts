@@ -28,6 +28,8 @@ Q1. これらの関数は、アプリケーション全てで利用されるレ�
   -> 定義する場合は、このアプリケーションでは絶対のルールとしてこうする、というものを定義する
 */
 
+// tanaka: 引数とかのフォーマットは定数化したい
+
 // 日付関連のユーティリティ関数
 
 import {
@@ -42,24 +44,29 @@ import {
 } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
+// tanaka: AWSの話なのでアプリレイヤーに置くには大きすぎる？
 export function convertAWSDateTimeString(target: Date): string | false {
   try {
     return format(target, "yyyy-MM-dd'T'hh:mm:ss.sss'Z'");
   } catch (e) {
     console.warn(e);
+    // tanaka: エラースローしたい
     return false;
   }
 }
 
+// tanaka: returnしているだけなのでそもそも関数にするのは過剰かも
 export function nowAWSDateTimeString(date: Date = new Date()) {
   return convertAWSDateTimeString(date);
 }
 
 export function convertDateString(
+  // tanaka: 型はDateで固定したい
   date: Date | string,
-  toFormat: string = "yyyy/MM/dd"
+  toFormat: string = 'yyyy/MM/dd'
 ): string {
-  if (typeof date === "string") {
+  // tanaka: ネストが見辛いので早期リターンしたい
+  if (typeof date === 'string') {
     // 文字列型だったときにDateでキャストする
     try {
       return format(new Date(date), toFormat);
@@ -71,12 +78,24 @@ export function convertDateString(
   return format(date, toFormat);
 }
 
+/*
+tanaka:
+  - 関数名が分かりづらい
+    - 入力フォームって言われると具体的すぎるので置くとしても機能レイヤーが良いかも
+    - ここだけconvertではなくbuildなのも違和感
+  - これもreturnしているだけなのでそもそも関数にするのは過剰かも
+*/
 export function buildDateInputFormFormat(date: Date): string {
   return convertDateString(date);
 }
 
+/*
+tanaka:
+  - アプリレイヤーに置くのであればformatも外から渡せるようにして、"yyyy/MM/dd HH:mm"はデフォにするのが汎用性高そう
+  - その場合、関数名はconvertDateStringToFormatとかが良さそう
+*/
 export function convertDateTimeString(date: Date): string {
-  return format(date, "yyyy/MM/dd HH:mm");
+  return format(date, 'yyyy/MM/dd HH:mm');
 }
 
 // ------- 余ったら。似たような感じなので、どういう機能で閉じていると便利かなども考えてみると良い
@@ -84,7 +103,7 @@ export function convertDateTimeString(date: Date): string {
 export function dateStringToAWSDateTimeString(
   from: string,
   isTruncateTime: boolean = true,
-  fromFormat: string = "yyyy/MM/dd"
+  fromFormat: string = 'yyyy/MM/dd'
 ): string {
   const toFormat = isTruncateTime
     ? "yyyy-MM-dd'T'00:00:00.000'Z'"
@@ -97,7 +116,7 @@ export function addDayFromDateString(
   from: string,
   add: number,
   isTruncateTime: boolean = true,
-  fromFormat: string = "yyyy/MM/dd"
+  fromFormat: string = 'yyyy/MM/dd'
 ) {
   const date = addDays(parse(from, fromFormat, new Date()), add);
   return dateStringToAWSDateTimeString(
@@ -112,7 +131,7 @@ export function addDayFromDateString(
  * @param target 日付
  * @returns UTCの日付
  */
-export function formatAsUtc(target: string, toFormat: string = "yyyy/MM/dd") {
+export function formatAsUtc(target: string, toFormat: string = 'yyyy/MM/dd') {
   const date = parseISO(target);
 
   // UTCの日付に調整する
@@ -127,13 +146,14 @@ export function formatAsUtc(target: string, toFormat: string = "yyyy/MM/dd") {
  */
 export function formatJstStringFrom(
   target: string | number | Date,
-  toFormat: string = "yyyy/MM/dd HH:mm"
-) {
+  toFormat: string = 'yyyy/MM/dd HH:mm'
+): string {
   try {
-    return format(toZonedTime(target, "Asia/Tokyo"), toFormat);
+    return format(toZonedTime(target, 'Asia/Tokyo'), toFormat);
   } catch (e) {
     console.error(e);
-    return "";
+    // tanaka: エラー握りつぶさずthrowしたい
+    return '';
   }
 }
 
@@ -181,6 +201,11 @@ export const getStartOfDayInJpn = (datetime: Date | null): Date | null => {
 };
 
 /** 7日前の日付を取得する **/
+/*
+tanaka:
+  - アプリレイヤーに置くのであれば汎用性が低いのでdaysも外から渡してあげた方が良さそう
+  - このまま行くなら特定の機能のレイヤーに置きたい
+*/
 export function getOneWeekAgoDate(): string {
   const day = startOfDay(new Date());
   return format(sub(day, { days: 7 }), "yyyy-MM-dd'T'hh:mm:ss.sss'Z'");
